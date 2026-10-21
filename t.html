@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>MySoulSchool Sales Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f6f4fb;--card:#fff;--tx:#1f1a33;--mu:#6d6788;--bd:#e6e1f2;--ac:#6d3fd8;--ac2:#e8b04a;--up:#13875a;--dn:#d1384f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14101f;--card:#1e1830;--tx:#efeafc;--mu:#a49cc4;--bd:#2f2749;--ac:#a98bff;--ac2:#f0c066;--up:#3ccf91;--dn:#ff7a8e}}
+:root[data-theme="dark"]{--bg:#14101f;--card:#1e1830;--tx:#efeafc;--mu:#a49cc4;--bd:#2f2749;--ac:#a98bff;--ac2:#f0c066;--up:#3ccf91;--dn:#ff7a8e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 'Plus Jakarta Sans',system-ui,sans-serif}
+header{padding:18px 20px 0;max-width:1280px;margin:auto}h1{margin:0;font-size:22px}h1 span{color:var(--ac)}
+.sub{color:var(--mu);font-size:12px;margin-top:2px}
+nav{display:flex;gap:6px;overflow-x:auto;margin:14px 0 0}nav button,.seg button{border:1px solid var(--bd);background:var(--card);color:var(--mu);padding:8px 14px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+nav button.on,.seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;padding:14px 20px;max-width:1280px;margin:auto}
+.bar label{display:flex;flex-direction:column;font-size:11px;color:var(--mu);gap:3px;font-weight:600}
+.bar select,.bar input{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:7px 9px;font:inherit}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{padding:6px 12px;font-size:12px}
+main{max-width:1280px;margin:auto;padding:0 20px 40px}.pg{display:none}.pg.on{display:block}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;min-width:0}
+.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu)}
+.kr{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-top:1px solid var(--bd)}.kr:first-of-type{border-top:0}
+.kr b{font-size:16px}.kr small{color:var(--mu);display:block;font-size:11px}
+.gr{font-size:11px;font-weight:700;margin-left:6px}.up{color:var(--up)}.dn{color:var(--dn)}
+.big{font-size:26px;font-weight:700}.mu{color:var(--mu);font-size:12px}
+.ch{position:relative;height:300px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-size:11px;text-transform:uppercase}
+tfoot td{font-weight:700}.hm td{text-align:center;border:2px solid var(--card);border-radius:6px;min-width:62px}
+.tag{display:inline-block;background:var(--ac);color:#fff;border-radius:6px;padding:1px 6px;font-size:10px;margin-left:6px}
+footer{max-width:1280px;margin:auto;padding:0 20px 30px;color:var(--mu);font-size:11px}
+</style></head><body>
+<header><h1>MySoulSchool <span>Sales Dashboard</span></h1><div class="sub">Source: Students Records → Dashboard tab · snapshot as of /*ASOF*/</div>
+<nav id="nav"><button data-p="sales">Sales Overview</button><button data-p="programs">Program Performance</button><button data-p="best">Best Periods</button><button data-p="team">Sales Team Performance</button></nav></header>
+<div class="bar">
+<label>From<input type="date" id="from"></label><label>To<input type="date" id="to"></label>
+<div class="seg" id="pre"><button data-r="all">All time</button><button data-r="30">30 days</button><button data-r="m">This month</button><button data-r="y">This year</button></div>
+<label>Program<select id="prog"></select></label>
+<label id="cbw" style="display:none">Closed By<select id="cb"></select></label></div>
+<main>
+<section class="pg" id="sales"><div class="grid g4" id="kpis"></div><div class="mu" style="margin:8px 2px">Cards show to-date totals against the previous period over the same span. The Program filter applies; the date range does not.</div>
+<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Daily trend · last 60 days</h3><div class="ch"><canvas id="c1"></canvas></div></div><div class="card"><h3>Monthly Program Fee</h3><div class="ch"><canvas id="c2"></canvas></div></div></div></section>
+<section class="pg" id="programs"><div class="card"><h3>By Program</h3><div class="tw" id="ptab"></div></div>
+<div class="card" style="margin-top:14px"><h3>Month-wise Program Fee by Program</h3><div class="ch" style="height:380px"><canvas id="c3"></canvas></div></div></section>
+<section class="pg" id="best"><div class="grid g4" id="calls"></div>
+<div class="card" style="margin-top:14px"><h3>Program Fee · Month × Year</h3><div class="tw" id="hm"></div></div>
+<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Program Fee by Day of week</h3><div class="ch"><canvas id="c4"></canvas></div></div><div class="card"><h3>Same month, year over year</h3><div class="ch"><canvas id="c5"></canvas></div></div></div></section>
+<section class="pg" id="team"><div class="card" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between"><div class="seg" id="grain"><button data-g="d">Daily</button><button data-g="w">Weekly</button><button data-g="m">Monthly</button><button data-g="q">Quarterly</button><button data-g="y">Yearly</button></div><div><span class="mu">Not Tagged % <span class="tag">target 0%</span></span><div class="big" id="nt"></div></div></div>
+<div class="card"><h3>Leaderboard · Closed By</h3><div class="tw" id="lb"></div></div>
+<div class="card" style="margin-top:14px"><h3>Closed By × Program · Enrollments</h3><div class="tw" id="mx"></div></div>
+<div class="card" style="margin-top:14px"><h3 id="tt">Trend by closer</h3><div class="ch" style="height:360px"><canvas id="c6"></canvas></div></div></section>
+</main>
+<footer>Enrollments are counted once (Duplicate Email/Phone + Program); Blocklist, test entries and rows without First Name are excluded. Blank or #REF! Closed By shows as “Not Tagged” here only. Amounts in ₹ Lakh (L). This page is a snapshot: re-publish from a fresh export to refresh it.</footer>
+<script>
+const D=/*DATA*/;
+const R=D.map(x=>({t:new Date(x[0]+'T00:00:00'),k:x[0],p:x[1],f:x[2],b:x[3],a:x[4],u:x[5],s:x[6],c:x[7]}));
+const $=i=>document.getElementById(i),MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],DW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const L=n=>'₹'+(n/1e5).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' L',N=n=>n.toLocaleString('en-IN'),P=n=>(n*100).toFixed(1)+'%';
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const wk=d=>add(d,-((d.getDay()+6)%7)),mk=d=>iso(d).slice(0,7),qk=d=>d.getFullYear()+'-Q'+(Math.floor(d.getMonth()/3)+1);
+const S={pg:'sales',prog:'All',from:'',to:'',cb:'All',g:'m'},C={};
+const progs=[...new Set(R.map(r=>r.p))].sort(),cbs=[...new Set(R.map(r=>r.c))].sort((a,b)=>a==='Not Tagged'?1:b==='Not Tagged'?-1:a.localeCompare(b));
+$('prog').innerHTML=['All',...progs].map(x=>`<option>${x==='All'?'All':x}</option>`).join('');
+$('cb').innerHTML=['All',...cbs].map(x=>`<option>${x}</option>`).join('');
+const ag=a=>a.reduce((o,r)=>(o.n++,o.f+=r.f,o.a+=r.a,o.u+=r.u,o),{n:0,f:0,a:0,u:0});
+const byP=()=>R.filter(r=>S.prog==='All'||r.p===S.prog);
+const flt=()=>byP().filter(r=>(!S.from||r.k>=S.from)&&(!S.to||r.k<=S.to)&&(S.cb==='All'||r.c===S.cb));
+const grp=(a,fn)=>{const m=new Map();a.forEach(r=>{const k=fn(r);(m.get(k)||m.set(k,[]).get(k)).push(r)});return m};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const PAL=['#6d3fd8','#e8b04a','#2bb3a3','#e0587a','#3f7bd8','#8bc34a','#ff8a4c','#9b59b6','#7f8c8d'];
+function chart(id,cfg){C[id]&&C[id].destroy();const tx=css('--mu'),gd=css('--bd');cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:tx,boxWidth:10}}}},cfg.options||{});
+ const sc=cfg.options.scales=cfg.options.scales||{};['x','y'].forEach(a=>{sc[a]=Object.assign({ticks:{color:tx},grid:{color:gd}},sc[a]||{});sc[a].ticks=Object.assign({color:tx},sc[a].ticks||{});});
+ C[id]=new Chart($(id),cfg)}
+const lt={callbacks:{}};
+function growth(c,p,inv){if(!p)return '<span class="gr mu">—</span>';const g=(c-p)/p,good=inv?g<=0:g>=0;return `<span class="gr ${good?'up':'dn'}">${g>=0?'▲':'▼'} ${Math.abs(g*100).toFixed(1)}%</span>`}
+function kpis(){const a=byP(),T=new Date();T.setHours(0,0,0,0);const rg=(x,y)=>ag(a.filter(r=>r.t>=x&&r.t<=y));
+ const m0=new Date(T.getFullYear(),T.getMonth(),1),pm=new Date(T.getFullYear(),T.getMonth()-1,1),pmE=new Date(Math.min(add(pm,T.getDate()-1),new Date(T.getFullYear(),T.getMonth(),0)));
+ const y0=new Date(T.getFullYear(),0,1),py=new Date(T.getFullYear()-1,0,1),pyE=new Date(T.getFullYear()-1,T.getMonth(),T.getDate());
+ const P_=[['Today',rg(T,T),rg(add(T,-1),add(T,-1))],['This Week',rg(wk(T),T),rg(add(wk(T),-7),add(T,-7))],['This Month',rg(m0,T),rg(pm,pmE)],['This Year',rg(y0,T),rg(py,pyE)]];
+ $('kpis').innerHTML=P_.map(([n,c,p])=>`<div class="card"><h3>${n}</h3>${[['Enrollments','n',N],['Program Fee','f',L],['Amount Received','a',L],['Amount Due','u',L]].map(([l,k,f])=>`<div class="kr"><small>${l}</small><span><b>${f(c[k])}</b>${growth(c[k],p[k],k==='u')}</span></div>`).join('')}</div>`).join('');
+ const s=add(T,-59),m=grp(a.filter(r=>r.t>=s),r=>r.k),lab=[],f=[],n=[];for(let i=0;i<60;i++){const d=add(s,i),x=ag(m.get(iso(d))||[]);lab.push(d.getDate()+' '+MN[d.getMonth()]);f.push(x.f/1e5);n.push(x.n)}
+ chart('c1',{type:'line',data:{labels:lab,datasets:[{label:'Program Fee (₹ L)',data:f,borderColor:PAL[0],backgroundColor:PAL[0]+'33',fill:true,tension:.3,pointRadius:0,yAxisID:'y'},{label:'Enrollments',data:n,borderColor:PAL[1],tension:.3,pointRadius:0,yAxisID:'y1'}]},options:{scales:{x:{ticks:{maxTicksLimit:8}},y:{position:'left'},y1:{position:'right',grid:{drawOnChartArea:false}}}}});
+ const mm=[...grp(a,r=>mk(r.t)).entries()].sort((x,y)=>x[0]<y[0]?-1:1);
+ chart('c2',{type:'bar',data:{labels:mm.map(x=>x[0]),datasets:[{label:'Program Fee (₹ L)',data:mm.map(x=>ag(x[1]).f/1e5),backgroundColor:PAL[0],borderRadius:4}]},options:{scales:{x:{ticks:{maxTicksLimit:14}}}}})}
+function programs(){const a=flt(),m=grp(a,r=>r.p),rows=[...m.entries()].map(([p,x])=>({p,...ag(x),rc:x.filter(r=>r.s==='Received').length,du:x.filter(r=>r.s==='Due').length})).sort((x,y)=>y.f-x.f),T=ag(a);
+ const tr=o=>`<td>${N(o.n)}</td><td>${L(o.f)}</td><td>${L(o.a)}</td><td>${L(o.u)}</td><td>${o.f?P(o.a/o.f):'—'}</td><td>${o.n?L(o.f/o.n):'—'}</td>`;
+ $('ptab').innerHTML=`<table><thead><tr><th>Program</th><th>Enrollments</th><th>Program Fee</th><th>Amount Received</th><th>Amount Due</th><th>Collection %</th><th>Avg Program Fee</th><th>Received</th><th>Due</th></tr></thead><tbody>${rows.map(o=>`<tr><td>${o.p}</td>${tr(o)}<td>${N(o.rc)}</td><td>${N(o.du)}</td></tr>`).join('')}</tbody><tfoot><tr><td>Total</td>${tr(T)}<td>${N(a.filter(r=>r.s==='Received').length)}</td><td>${N(a.filter(r=>r.s==='Due').length)}</td></tr></tfoot></table>`;
+ const ms=[...new Set(a.map(r=>mk(r.t)))].sort(),pm=grp(a,r=>r.p+'|'+mk(r.t));
+ chart('c3',{type:'bar',data:{labels:ms,datasets:rows.map((o,i)=>({label:o.p,data:ms.map(k=>ag(pm.get(o.p+'|'+k)||[]).f/1e5),backgroundColor:PAL[i%PAL.length]}))},options:{scales:{x:{stacked:true,ticks:{maxTicksLimit:14}},y:{stacked:true}}}})}
+function best(){const a=byP(),T=ag(a);const top=(fn,lab)=>{const e=[...grp(a,fn).entries()].map(([k,x])=>[k,ag(x)]).sort((x,y)=>y[1].f-x[1].f)[0];return e?`<div class="card"><h3>Best ${lab} · all time</h3><div class="big">${L(e[1].f)}</div><div class="mu">${lab==='Week'?'Week of ':''}${e[0]} · ${N(e[1].n)} enrollments</div></div>`:''};
+ $('calls').innerHTML=top(r=>r.k,'Day')+top(r=>iso(wk(r.t)),'Week')+top(r=>mk(r.t),'Month')+top(r=>qk(r.t),'Quarter');
+ const ys=[...new Set(a.map(r=>r.t.getFullYear()))].sort(),hm=grp(a,r=>r.t.getFullYear()+'-'+r.t.getMonth()),mx=Math.max(1,...[...hm.values()].map(x=>ag(x).f));
+ $('hm').innerHTML=`<table class="hm"><thead><tr><th>Year</th>${MN.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>${ys.map(y=>`<tr><td><b>${y}</b></td>${MN.map((m,i)=>{const x=hm.get(y+'-'+i);if(!x)return '<td class="mu">–</td>';const f=ag(x).f;return `<td title="${N(x.length)} enrollments" style="background:color-mix(in srgb,var(--ac) ${Math.round(8+f/mx*80)}%,var(--card));color:${f/mx>.55?'#fff':'var(--tx)'}">${(f/1e5).toFixed(1)}</td>`}).join('')}</tr>`).join('')}</tbody></table><div class="mu" style="margin-top:6px">Program Fee in ₹ Lakh · hover for enrollments</div>`;
+ const dw=grp(a,r=>(r.t.getDay()+6)%7);chart('c4',{type:'bar',data:{labels:DW,datasets:[{label:'Program Fee (₹ L)',data:DW.map((_,i)=>ag(dw.get(i)||[]).f/1e5),backgroundColor:PAL[2],borderRadius:4}]}});
+ const ym=grp(a,r=>r.t.getFullYear()+'-'+r.t.getMonth());chart('c5',{type:'line',data:{labels:MN,datasets:ys.map((y,i)=>({label:String(y),data:MN.map((_,m)=>ym.has(y+'-'+m)?ag(ym.get(y+'-'+m)).f/1e5:null),borderColor:PAL[i%PAL.length],tension:.3,spanGaps:false}))}})}
+function team(){const a=flt(),T=a.length,nt=a.filter(r=>r.c==='Not Tagged').length;$('nt').textContent=T?P(nt/T):'—';$('nt').className='big '+(nt/T>0?'dn':'up');
+ const m=grp(a,r=>r.c),rows=[...m.entries()].map(([c,x])=>({c,...ag(x)})).sort((x,y)=>y.f-x.f);
+ $('lb').innerHTML=`<table><thead><tr><th>#</th><th>Closed By</th><th>Enrollments</th><th>Program Fee</th><th>Amount Received</th><th>Amount Due</th><th>Avg Program Fee</th></tr></thead><tbody>${rows.map((o,i)=>`<tr><td>${i+1}</td><td>${o.c}</td><td>${N(o.n)}</td><td>${L(o.f)}</td><td>${L(o.a)}</td><td>${L(o.u)}</td><td>${o.n?L(o.f/o.n):'—'}</td></tr>`).join('')}</tbody></table>`;
+ const ps=[...new Set(a.map(r=>r.p))].sort(),pm=grp(a,r=>r.c+'|'+r.p),mx=Math.max(1,...[...pm.values()].map(x=>x.length));
+ $('mx').innerHTML=`<table class="hm"><thead><tr><th>Closed By</th>${ps.map(p=>`<th>${p}</th>`).join('')}<th>Total</th></tr></thead><tbody>${rows.map(o=>`<tr><td>${o.c}</td>${ps.map(p=>{const n=(pm.get(o.c+'|'+p)||[]).length;return n?`<td style="background:color-mix(in srgb,var(--ac) ${Math.round(8+n/mx*80)}%,var(--card));color:${n/mx>.55?'#fff':'var(--tx)'}">${N(n)}</td>`:'<td class="mu">–</td>'}).join('')}<td><b>${N(o.n)}</b></td></tr>`).join('')}</tbody></table>`;
+ const fk={d:r=>r.k,w:r=>iso(wk(r.t)),m:r=>mk(r.t),q:r=>qk(r.t),y:r=>String(r.t.getFullYear())}[S.g],keys=[...new Set(a.map(fk))].sort(),gm=grp(a,r=>r.c+'|'+fk(r));
+ $('tt').textContent='Enrollments by closer · '+{d:'Daily',w:'Weekly',m:'Monthly',q:'Quarterly',y:'Yearly'}[S.g];
+ chart('c6',{type:'line',data:{labels:keys,datasets:rows.slice(0,8).map((o,i)=>({label:o.c,data:keys.map(k=>(gm.get(o.c+'|'+k)||[]).length),borderColor:PAL[i%PAL.length],tension:.3,pointRadius:S.g==='d'?0:2}))},options:{scales:{x:{ticks:{maxTicksLimit:12}}}}})}
+function draw(){document.querySelectorAll('.pg').forEach(e=>e.classList.toggle('on',e.id===S.pg));document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===S.pg));
+ document.querySelectorAll('#grain button').forEach(b=>b.classList.toggle('on',b.dataset.g===S.g));$('cbw').style.display=S.pg==='team'?'flex':'none';
+ ({sales:kpis,programs,best,team})[S.pg]()}
+$('nav').onclick=e=>{if(e.target.dataset.p){S.pg=e.target.dataset.p;location.hash=S.pg;draw()}};
+$('grain').onclick=e=>{if(e.target.dataset.g){S.g=e.target.dataset.g;draw()}};
+$('prog').onchange=e=>{S.prog=e.target.value;draw()};$('cb').onchange=e=>{S.cb=e.target.value;draw()};
+$('from').onchange=e=>{S.from=e.target.value;draw()};$('to').onchange=e=>{S.to=e.target.value;draw()};
+$('pre').onclick=e=>{const r=e.target.dataset.r;if(!r)return;const T=new Date(),y=T.getFullYear();S.to=r==='all'?'':iso(T);S.from=r==='all'?'':r==='30'?iso(add(T,-29)):r==='m'?iso(new Date(y,T.getMonth(),1)):iso(new Date(y,0,1));$('from').value=S.from;$('to').value=S.to;draw()};
+const h=location.hash.slice(1);if(['sales','programs','best','team'].includes(h))S.pg=h;draw();
+</script></body></html>
