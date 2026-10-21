@@ -55,7 +55,7 @@ footer{max-width:1280px;margin:auto;padding:0 20px 30px;color:var(--mu);font-siz
 const D=/*DATA*/;
 const R=D.map(x=>({t:new Date(x[0]+'T00:00:00'),k:x[0],p:x[1],f:x[2],b:x[3],a:x[4],u:x[5],s:x[6],c:x[7]}));
 const $=i=>document.getElementById(i),MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],DW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const F2=v=>v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}),L=n=>{const a=Math.abs(n);return a>=1e5?'₹'+F2(n/1e5)+' L':a>=1e3?'₹'+F2(n/1e3)+' K':'₹'+Math.round(n).toLocaleString('en-IN')},U=m=>m>=1e5?{d:1e5,s:'L'}:{d:1e3,s:'K'},H=f=>f>=1e5?(f/1e5).toFixed(1)+'L':(f/1e3).toFixed(0)+'K',N=n=>n.toLocaleString('en-IN'),P=n=>(n*100).toFixed(1)+'%';
+const F2=v=>v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}),L=n=>{const a=Math.abs(n),g=n<0&&a>=0.5?'-':'';return a>=1e5?g+'₹'+F2(a/1e5)+' L':a>=1e3?g+'₹'+F2(a/1e3)+' K':g+'₹'+Math.round(a).toLocaleString('en-IN')},U=m=>m>=1e5?{d:1e5,s:'L'}:{d:1e3,s:'K'},H=f=>f>=1e5?(f/1e5).toFixed(1)+'L':(f/1e3).toFixed(0)+'K',N=n=>n.toLocaleString('en-IN'),P=n=>(n*100).toFixed(1)+'%';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const wk=d=>add(d,-((d.getDay()+6)%7)),mk=d=>iso(d).slice(0,7),qk=d=>d.getFullYear()+'-Q'+(Math.floor(d.getMonth()/3)+1);
